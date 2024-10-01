@@ -336,5 +336,45 @@ function calculateSummary(filteredRooms) {
 }
 
 // Initialize the app
+function testLogin() {
+    const username = 'admin';
+    const password = 'frame01!';
+    const user = users.find(u => u.username === username && u.password === password);
+    if (user) {
+        console.log('Login successful');
+        console.log('User:', user);
+    } else {
+        console.log('Login failed');
+        console.log('Available users:', users);
+    }
+}
+
+function onDataLoaded() {
+    console.log('Data loaded');
+    console.log('Users:', users);
+    testLogin();
+}
+
+function loadData() {
+    let roomsLoaded = false;
+    let usersLoaded = false;
+
+    database.ref('rooms').on('value', (snapshot) => {
+        rooms = snapshot.val() || [];
+        updateTables();
+        roomsLoaded = true;
+        if (usersLoaded) onDataLoaded();
+    });
+
+    database.ref('users').once('value', (snapshot) => {
+        users = snapshot.val() || [];
+        if (!users.some(user => user.username === 'admin')) {
+            addInitialAdminUser();
+        }
+        usersLoaded = true;
+        if (roomsLoaded) onDataLoaded();
+    });
+}
+
+// Make sure this line is at the very end of your file
 loadData();
-showSection('loginSignup');
